@@ -55,8 +55,8 @@ const char *elf_err[0x07] = {
     "File is not an executable!",
     "File is not ELF format!",
     "Invalid shellcode format!",
-    "File is not 32-bit!",
-    "File is not 64-bit!",
+    "\nFile architecture is not x86!",
+    "\nFile architecture is not x86-64!",
     "Invalid shellcode format!"
 };
 
