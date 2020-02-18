@@ -204,17 +204,17 @@ bool binject_assert_elf( ELF_t *elf )
         ERROR( ELFTYPE, 0x01 );
     
     #ifdef BINJECT32
-        if ( header->e_ident[EI_CLASS] != ELFHBITS32 )
+        if ( header->e_ident[EI_CLASS] != ELFHBITS32 || header->e_machine != 0x03 )
             ERROR( ELFB32, 0x01 );
     #endif
     #ifdef BINJECT64
-        if ( header->e_ident[EI_CLASS] != ELFHBITS64 )
+        if ( header->e_ident[EI_CLASS] != ELFHBITS64 || header->e_machine != 0x3e )
             ERROR( ELFB64, 0x01 );
     #endif
-    
-    puts( (header->e_ident[EI_CLASS] == 0x2)
-          ? "\n[*] - Elf [64-bits]"
-          : "\n[*] - Elf [32-bits]"
+
+    puts( (header->e_ident[EI_CLASS] == ELFHBITS64)
+          ? "\n[*] - Elf [x86-64]"
+          : "\n[*] - Elf [x86]"
     );
     elf->header = header;
     elf->shdr   = shdrs;
