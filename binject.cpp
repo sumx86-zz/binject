@@ -34,7 +34,7 @@
 }
 
 #define _FATAL( errbuf, errno ){\
-    puts( (errbuf != NULL) ? errbuf : strerror( errno ) );\
+    puts( (errbuf != nullptr) ? errbuf : strerror( errno ) );\
     SHUTELF();\
     std::exit( 0x02 );\
 }
@@ -99,12 +99,12 @@ bytecode_t * binject_bytecode( const char *shellcode )
 {
     int c = chcount( shellcode, 'x' );
     if ( c == 0 )
-        return NULL;
+        return nullptr;
 
     static bytecode_t bytecode;
     bytecode.c = new u_char[c + (sizeof( jump_code ) - 1)];
     if ( !bytecode.c )
-        return NULL;
+        return nullptr;
 
     bytecode.size = c + (sizeof( jump_code ) - 1);
 
@@ -117,7 +117,7 @@ bytecode_t * binject_bytecode( const char *shellcode )
 
         if ( !is_xdigit( *shellcode ) || !is_xdigit( *(shellcode + 1) ) ) {
             delete[] bytecode.c;
-            return NULL;
+            return nullptr;
         }
         xd1             = xdec( *shellcode++, 16 );
         xd2             = xdec( *shellcode++,  1 );
@@ -131,7 +131,7 @@ void * zbuff( size_t size )
 {
     char *buff = new char[size];
     if ( !buff )
-        return NULL;
+        return nullptr;
 
     memset( buff, '\x00', size );
     return (void *) buff;
@@ -146,14 +146,11 @@ bool binject_load_file( const char *fname, ELF_t *elf, int page_size )
         ERROR( errno, 0x01 );
 
     // file info
-    if ( fstat( elf->fd, &stat ) < 0x00 ||
-            !S_ISREG( stat.st_mode ) )
+    if ( fstat( elf->fd, &stat ) < 0x00 || !S_ISREG( stat.st_mode ) )
         ERROR( errno, 0x01 );
 
-    if ( (elf->buff = (char *) zbuff( stat.st_size + page_size
-            )) == NULL ) {
+    if ( (elf->buff = (char *) zbuff( stat.st_size + page_size )) == nullptr )
         ERROR( errno, 0x01 );
-    }
 
     if ( read( elf->fd, elf->buff, stat.st_size ) < 0x00 )
         ERROR( errno, 0x01 );
@@ -167,7 +164,8 @@ bool binject_load_file( const char *fname, ELF_t *elf, int page_size )
 /* create a copy of the modified file called `infected` */
 bool copy_infected( ELF_t *elf, const char *infected )
 {
-    if ( (int fd = open( infected, O_WRONLY | O_CREAT, 0x00 )) < 0x00 ) {
+    int fd;
+    if ( (fd = open( infected, O_WRONLY | O_CREAT, 0x00 )) < 0x00 ) {
         ERROR( errno, 0x01 );
     }
     if ( write( fd, elf->buff, elf->size + elf->psize ) < 0x00 )
@@ -235,12 +233,10 @@ void binject_patch_file( ELF_t *elf, Belf_Off offset, Belf_Addr vaddr, size_t si
  * Inject the shellcode
  */
 bool inject_shellcode( ELF_t *elf, const char *shellcode )
-{   
-    if ( (bytecode_t *bytecode = binject_bytecode( shellcode )) == NULL ) {
-        ERROR( (errno)
-              ? errno
-              : ELFXDIGIT, 0x01
-        );
+{
+    bytecode_t *bytecode;
+    if ( (bytecode = binject_bytecode( shellcode )) == nullptr ) {
+        ERROR( (errno) ? errno : ELFXDIGIT, 0x01 );
     }
     
     Belf_Off    offset;
@@ -272,12 +268,13 @@ bool inject_shellcode( ELF_t *elf, const char *shellcode )
 int main( int argc, char **argv )
 {
     ELF_t elf;
-    char *fname     = NULL;
-    char *shellcode = NULL;
-    elf.buff        = NULL;
+    int opt;
+    char *fname     = nullptr;
+    char *shellcode = nullptr;
+    elf.buff        = nullptr;
     int page_size   = 0x00;
 
-    while ( (int opt = getopt( argc, argv, "f:s:p:" )) != -1 ) {
+    while ( (opt = getopt( argc, argv, "f:s:p:" )) != -1 ) {
         switch ( opt )
         {
             case 'f': fname     = optarg;         break;
