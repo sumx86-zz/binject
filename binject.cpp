@@ -167,9 +167,7 @@ bool binject_load_file( const char *fname, ELF_t *elf, int page_size )
 /* create a copy of the modified file called `infected` */
 bool copy_infected( ELF_t *elf, const char *infected )
 {
-    int fd;
-    if ( (fd = open( infected, O_WRONLY | O_CREAT, 0x00
-            )) < 0x00 ) {
+    if ( (int fd = open( infected, O_WRONLY | O_CREAT, 0x00 )) < 0x00 ) {
         ERROR( errno, 0x01 );
     }
     if ( write( fd, elf->buff, elf->size + elf->psize ) < 0x00 )
@@ -183,20 +181,11 @@ bool copy_infected( ELF_t *elf, const char *infected )
  */
 bool binject_assert_elf( ELF_t *elf )
 {
-    Belf_Ehdr *header;
-    Belf_Phdr *phdrs;
-    Belf_Shdr *shdrs;
-
-    header = (Belf_Ehdr *)  elf->buff;
-    phdrs  = (Belf_Phdr *) (elf->buff + header->e_phoff);
-    shdrs  = (Belf_Shdr *) (elf->buff + header->e_shoff);
+    Belf_Ehdr *header = (Belf_Ehdr *)  elf->buff;
+    Belf_Phdr *phdrs  = (Belf_Phdr *) (elf->buff + header->e_phoff);
+    Belf_Shdr *shdrs  = (Belf_Shdr *) (elf->buff + header->e_shoff);
     
-    u_char magic[0x04] = {
-        ELFMAG0,
-        ELFMAG1,
-        ELFMAG2,
-        ELFMAG3
-    };
+    u_char magic[0x04] = { ELFMAG0, ELFMAG1, ELFMAG2, ELFMAG3 };
     if ( memcmp( header, magic, sizeof( magic ) ) != 0x00 )
         ERROR( ELFORMAT, 0x01 );
 
@@ -246,18 +235,18 @@ void binject_patch_file( ELF_t *elf, Belf_Off offset, Belf_Addr vaddr, size_t si
  * Inject the shellcode
  */
 bool inject_shellcode( ELF_t *elf, const char *shellcode )
-{
-    bytecode_t *bytecode;
-    Belf_Off    offset;
-    Belf_Addr   vaddr;
-    size_t      size;
-    
-    if ( (bytecode = binject_bytecode( shellcode )) == NULL ) {
+{   
+    if ( (bytecode_t *bytecode = binject_bytecode( shellcode )) == NULL ) {
         ERROR( (errno)
               ? errno
               : ELFXDIGIT, 0x01
         );
     }
+    
+    Belf_Off    offset;
+    Belf_Addr   vaddr;
+    size_t      size;
+
     for ( int i = 0 ; i < elf->header->e_phnum ; i++ ) {
         if ( elf->phdr[i].p_type == PT_LOAD && elf->phdr[i].p_flags == (PF_R | PF_X) ) {
              elf->phdr[i].p_filesz += bytecode->size;
@@ -282,18 +271,13 @@ bool inject_shellcode( ELF_t *elf, const char *shellcode )
 
 int main( int argc, char **argv )
 {
-    int opt;
-    char *fname;
-    char *shellcode;
-    int   page_size;
     ELF_t elf;
+    char *fname     = NULL;
+    char *shellcode = NULL;
+    elf.buff        = NULL;
+    int page_size   = 0x00;
 
-    fname     = NULL;
-    shellcode = NULL;
-    elf.buff  = NULL;
-    page_size = 0x00;
-
-    while ( (opt = getopt( argc, argv, "f:s:p:" )) != -1 ) {
+    while ( (int opt = getopt( argc, argv, "f:s:p:" )) != -1 ) {
         switch ( opt )
         {
             case 'f': fname     = optarg;         break;
