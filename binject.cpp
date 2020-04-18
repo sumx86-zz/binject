@@ -212,7 +212,7 @@ bool binject_assert_elf( ELF_t *elf )
         ERROR( ELFTYPE, 0x01 );
     
     if ( !assert_elf_arch( &header ) )
-    	ERROR( ELFB32, 0x01 );
+    	return false;
 
     puts( (header->e_ident[EI_CLASS] == ELFHBITS64) ? "\n[*] - Elf [x86-64]" : "\n[*] - Elf [x86]" );
     elf->header = header;
