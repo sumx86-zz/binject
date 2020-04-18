@@ -136,6 +136,17 @@ void * zbuff( size_t size )
     memset( buff, '\x00', size );
     return (void *) buff;
 }
+
+/* initialize elf buffer */
+bool init_buff( ELF_t *elf, struct stat st, int page_size ) {
+    if ( (elf->buff = (char *) zbuff( st.st_size + page_size )) == nullptr )
+        ERROR( errno, 0x01 );
+
+    if ( read( elf->fd, elf->buff, st.st_size ) < 0x00 )
+        ERROR( errno, 0x01 );
+    return true;
+}
+
 /*
  * Load the file
  */
@@ -149,11 +160,8 @@ bool binject_load_file( const char *fname, ELF_t *elf, int page_size )
     if ( fstat( elf->fd, &stat ) < 0x00 || !S_ISREG( stat.st_mode ) )
         ERROR( errno, 0x01 );
 
-    if ( (elf->buff = (char *) zbuff( stat.st_size + page_size )) == nullptr )
-        ERROR( errno, 0x01 );
-
-    if ( read( elf->fd, elf->buff, stat.st_size ) < 0x00 )
-        ERROR( errno, 0x01 );
+    if ( !init_buff( elf, stat, page_size ) )
+    	return false;
 
     elf->close_fd();
     elf->size  = stat.st_size;
