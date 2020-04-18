@@ -182,6 +182,19 @@ bool copy_infected( ELF_t *elf, const char *infected )
     return true;
 }
 
+bool assert_elf_arch( const Belf_Ehdr *header )
+{
+    #ifdef BINJECT32
+        if ( header->e_ident[EI_CLASS] != ELFHBITS32 || header->e_machine != 0x03 )
+            ERROR( ELFB32, 0x01 );
+    #endif
+    #ifdef BINJECT64
+        if ( header->e_ident[EI_CLASS] != ELFHBITS64 || header->e_machine != 0x3e )
+            ERROR( ELFB64, 0x01 );
+    #endif
+    return true;
+}
+
 /*
  * Verify that the target file is a valid one
  */
@@ -198,19 +211,10 @@ bool binject_assert_elf( ELF_t *elf )
     if ( header->e_type != ET_EXEC )
         ERROR( ELFTYPE, 0x01 );
     
-    #ifdef BINJECT32
-        if ( header->e_ident[EI_CLASS] != ELFHBITS32 || header->e_machine != 0x03 )
-            ERROR( ELFB32, 0x01 );
-    #endif
-    #ifdef BINJECT64
-        if ( header->e_ident[EI_CLASS] != ELFHBITS64 || header->e_machine != 0x3e )
-            ERROR( ELFB64, 0x01 );
-    #endif
+    if ( !assert_elf_arch( &header ) )
+    	ERROR( ELFB32, 0x01 );
 
-    puts( (header->e_ident[EI_CLASS] == ELFHBITS64)
-          ? "\n[*] - Elf [x86-64]"
-          : "\n[*] - Elf [x86]"
-    );
+    puts( (header->e_ident[EI_CLASS] == ELFHBITS64) ? "\n[*] - Elf [x86-64]" : "\n[*] - Elf [x86]" );
     elf->header = header;
     elf->shdr   = shdrs;
     elf->phdr   = phdrs;
