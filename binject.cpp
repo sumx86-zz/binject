@@ -138,7 +138,8 @@ void * zbuff( size_t size )
 }
 
 /* initialize elf buffer */
-bool init_buff( ELF_t *elf, struct stat st, int page_size ) {
+bool init_buff( ELF_t *elf, struct stat st, int page_size )
+{
     if ( (elf->buff = (char *) zbuff( st.st_size + page_size )) == nullptr )
         ERROR( errno, 0x01 );
 
@@ -211,7 +212,7 @@ bool binject_assert_elf( ELF_t *elf )
     if ( header->e_type != ET_EXEC )
         ERROR( ELFTYPE, 0x01 );
     
-    if ( !assert_elf_arch( &header ) )
+    if ( !assert_elf_arch( header ) )
     	return false;
 
     puts( (header->e_ident[EI_CLASS] == ELFHBITS64) ? "\n[*] - Elf [x86-64]" : "\n[*] - Elf [x86]" );
