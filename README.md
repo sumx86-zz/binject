@@ -26,3 +26,6 @@ make all BITS='64' (For 64-bit elf injections)
 \x0f\x05                      -> syscall
 \x58                          -> pop  rax
 ```
+
+## TODO
+* remove page_size variable and use the shellcode size instead
